@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️ 替崴崴尋找幸福：孟孟你在哪TT</title>
+    <title>🕵️ 替崴崴尋找幸福：孟孟你在哪TT </title>
     <style>
         body { 
             background: #0d0e15; 
@@ -16,11 +16,13 @@
             align-items: center; 
             justify-content: center; 
             min-height: 100vh;
+            overflow-x: hidden;
         }
         
-        h1 { text-shadow: 0 0 15px #ff007f; margin-bottom: 5px; font-size: 32px; }
-        .subtitle { color: #a0a5b0; margin-top: 0; margin-bottom: 25px; font-size: 16px; }
+        h1 { text-shadow: 0 0 15px #ff007f; margin-bottom: 5px; font-size: 28px; }
+        .subtitle { color: #8a8f98; margin-top: 0; margin-bottom: 25px; }
         
+        /* 遊戲舞台 */
         .stage { 
             display: flex; 
             flex-direction: row; 
@@ -30,131 +32,41 @@
             padding: 30px; 
             border-radius: 20px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            border: 1px solid #252a3e; 
-        }
-
-        .quiz-container, .map-container { display: flex; flex-direction: column; align-items: center; }
-        .quiz-label { font-size: 18px; font-weight: bold; color: #ff007f; margin-bottom: 10px; text-shadow: 0 0 8px rgba(255,0,127,0.5); }
-        .map-label { font-size: 18px; font-weight: bold; color: #00ffcc; margin-bottom: 10px; text-shadow: 0 0 8px rgba(0,255,204,0.5); }
-
-        /* 題目放大鏡 */
-        .quiz-box { 
-            width: 320px; 
-            height: 320px; 
-            border: 4px solid #ff007f; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            position: relative; 
-            background: #000; 
-            box-shadow: 0 0 20px rgba(255, 0, 127, 0.4); 
-        }
-
-        .quiz-image { 
-            position: absolute; 
-            transform-origin: 0 0; 
-            transform: scale(3.5); /* 放大3.5倍看清魔性臉孔 */
-            width: 500px; 
-            height: auto; 
-        }
-        
-        /* 點擊主圖區 */
-        .map-wrapper { 
-            position: relative; 
-            width: 500px; 
-            cursor: crosshair; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            border: 4px solid #00ffcc; 
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); 
-            line-height: 0; 
-        }
-
-        .minimap { width: 100%; height: auto; }
-        
-        /* 標記點 */
-        .pin { position: absolute; width: 16px; height: 16px; background: #ff3333; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; }
-        .ans-pin { position: absolute; width: 16px; height: 16px; background: #00ffcc; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        
-        /* 面板 */
-        .control-panel { margin-top: 25px; background: #161925; padding: 20px 40px; border-radius: 15px; border: 1px solid #252a3e; display: flex; gap: 50px; align-items: center; }
-        .score-box h2 { margin: 0; font-size: 24px; color: #ffe600; }
-        .score-box p { margin: 5px 0 0 0; color: #a0a5b0; }
-        .btn-group { display: flex; gap: 15px; }
-        
-        button { padding: 12px 28px; font-size: 16px; background: #00ffcc; color: #0b0c10; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        button:hover { background: #00ccaa; transform: translateY(-2px); }
-        button.next-btn { background: #ffe600; }
-    </style>
-</head>
-<body>
-
-    <h1>🕵️ 替崴崴尋找幸福：孟孟你在哪TT</h1>
-    <p class="subtitle">孟孟被迫加入babymonster了，到底誰才是真正的孟孟？請依據放大圖，在全景圖中點出她的位置！</p>
-
-    <div class="stage">
-        <div class="quiz-container">
-            <div class="quiz-label" id="quizLabel">尋找孟孟中...</div>
-            <div class="quiz-box">
-                <img src="mengmeng.jpg" class="quiz-image" id="quizImage">
-            </div>
-        </div>
-
-        <div class="map-container">
-            <div class="map-label">在這裡找出幸福的座標：</div>
-            <div class="map-wrapper" id="mapWrapper" onclick="placePin(event)">
-                <img src="mengmeng.jpg" class="minimap" id="mainMap">
-                <div id="playerPin" class="pin"></div>
-                <div id="answerPin" class="ans-pin"></div>
-                <canvas id="lineCanvas"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="control-panel">
-        <div class="score-box">
-            <h2 id="scoreResult">幸福指數：0 / 5000</h2>
-            <p id="distanceResult">點擊地圖，測試崴崴和孟孟的心靈感應！</p>
-        </div>
-        <div class="btn-group">
-            <button onclick="submitAnswer()">提交答案</button>
-            <button class="next-btn" onclick="nextRound()">尋找下一個孟孟 ➔</button>
-        </div>
-    </div>
-
-<script>
-    // 🎯 精確的魔性臉孔座標（對應 500px 寬度的原圖比例）
-    const faces = [
-        { name: "關卡 1：朝思孟想我親愛的孟醬", x: 92, y: 104 },
-        { name: "關卡 2：原來是孟一場", x: 246, y: 220 },
-        { name: "關卡 3：崴孟受一點傷", x: 367, y: 236 }
+            border: 1px solid #252終於忘記你的時候你出現在我的孟裡", x: 367, y: 236 }
     ];
 
     let currentRound = 0;
     let guessedX = null;
     let guessedY = null;
     let isSubmitted = false;
+    let totalScore = 0;
 
     function startRound(roundIndex) {
         currentRound = roundIndex;
         isSubmitted = false;
         
+        if(currentRound === faces.length - 1) {
+            document.getElementById('nextBtn').innerText = "查看崴孟真愛大結局 ➔";
+        } else {
+            document.getElementById('nextBtn').innerText = "尋找下一個孟孟 ➔";
+        }
+        
         const quizImg = document.getElementById('quizImage');
         const face = faces[currentRound];
         
-        document.getElementById('quizLabel').innerText = `目前目標：${face.name}`;
+        document.getElementById('quizLabel').innerText = `${face.name}`;
         
-        // 算放大鏡視窗的位置
-        const offsetX = 160 - (face.x * 3.5);
-        const offsetY = 160 - (face.y * 3.5);
+        // 放大對齊
+        const offsetX = 160 - (face.x * 4.8);
+        const offsetY = 160 - (face.y * 4.8);
         
         quizImg.style.left = offsetX + 'px';
         quizImg.style.top = offsetY + 'px';
         
         document.getElementById('playerPin').style.display = 'none';
         document.getElementById('answerPin').style.display = 'none';
-        document.getElementById('scoreResult').innerText = "幸福指數：0 / 5000";
-        document.getElementById('distanceResult').innerText = "點擊地圖，測試崴崴和孟孟的心靈感應！";
+        document.getElementById('scoreResult').innerText = "本關感應值：--";
+        document.getElementById('distanceResult').innerText = "點擊地圖，鎖定孟孟的位置！";
         guessedX = null; guessedY = null;
         
         const canvas = document.getElementById('lineCanvas');
@@ -189,21 +101,23 @@
         const dy = guessedY - face.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        let score = Math.round(5000 - (distance * 20));
+        let score = Math.round(5000 - (distance * 28));
         if (score < 0) score = 0;
+        
+        totalScore += score;
 
-        document.getElementById('scoreResult').innerText = `幸福指數：${score} / 5000`;
-        if(score > 4500) {
-            document.getElementById('distanceResult').innerText = `太閃了吧！誤差僅 ${Math.round(distance)} 像素，這絕對是真愛！`;
+        document.getElementById('scoreResult').innerText = `本關感應值：${score} / 5000`;
+        
+        if(score > 4300) {
+            document.getElementById('distanceResult').innerText = `太閃了吧！誤差僅 ${Math.round(distance)} 像素，這絕對是命定真愛！`;
         } else {
-            document.getElementById('distanceResult').innerText = `天啊，誤差了 ${Math.round(distance)} 像素！崴崴你是不是認錯孟孟了？`;
+            document.getElementById('distanceResult').innerText = `天啊誤差了 ${Math.round(distance)} 像素！崴崴你是不是認錯孟孟了？`;
         }
         
-        // 畫連線
+        // 畫虛線
         const canvas = document.getElementById('lineCanvas');
-        const wrapper = document.getElementById('mapWrapper');
-        canvas.width = wrapper.clientWidth;
-        canvas.height = wrapper.clientHeight;
+        canvas.width = 500;
+        canvas.height = 333;
         const ctx = canvas.getContext('2d');
         ctx.beginPath();
         ctx.strokeStyle = '#ff3333';
@@ -215,9 +129,40 @@
     }
 
     function nextRound() {
+        if (!isSubmitted) {
+            alert("請先提交答案，測試你們的感應值！");
+            return;
+        }
+        
         let next = currentRound + 1;
-        if (next >= faces.length) next = 0;
-        startRound(next);
+        if (next >= faces.length) {
+            showEnding();
+        } else {
+            startRound(next);
+        }
+    }
+
+    // 🌟 最終崴孟大結局評價
+    function showEnding() {
+        document.getElementById('totalScoreText').innerText = `最終幸福指數：${totalScore} / 15000`;
+        
+        let comment = "";
+        if (totalScore >= 13500) {
+            comment = "恭喜達成【真愛無敵 朝思孟想終於找到泥】結局！崴崴在六個一模一樣的魔性臉孔中完成了神級感應！這波幸福狗糧直接把整個網頁給閃炸了";
+        } else if (totalScore >= 8000) {
+            comment = "達成【差點認錯 崴孟受一點傷】結局！雖然順利找到了，但崴崴中間好幾次差點把別人的魔性臉孔當成孟孟，崴崴趕快打電話給媽媽求救吧吧！";
+        } else {
+            comment = "達成【世界上最遙遠的距離 原來是孟一場】結局！幸福指數慘不忍睹，崴崴你根本認不出孟孟在哪裡！建議立刻重啟網頁，重新修煉你們的心靈感應！";
+        }
+        
+        document.getElementById('endingComment').innerText = comment;
+        document.getElementById('endingScreen').classList.add('show');
+    }
+
+    function restartGame() {
+        totalScore = 0;
+        document.getElementById('endingScreen').classList.remove('show');
+        startRound(0);
     }
 
     window.onload = function() {
