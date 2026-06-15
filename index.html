@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️ 替崴崴尋找幸福：孟孟你在哪TT </title>
+    <title>🕵️ 替崴崴尋找幸福：孟孟你在哪TT (絕對不全黑版)</title>
     <style>
         body { 
             background: #0d0e15; 
@@ -32,7 +32,78 @@
             padding: 30px; 
             border-radius: 20px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            border: 1px solid #252終於忘記你的時候你出現在我的孟裡", x: 367, y: 236 }
+            border: 1px solid #252a3e; 
+            position: relative;
+        }
+
+        .quiz-container, .map-container { display: flex; flex-direction: column; align-items: center; }
+        .quiz-label { font-size: 18px; font-weight: bold; color: #ff007f; margin-bottom: 10px; text-shadow: 0 0 道了...請看左邊局部放大提示，在右邊盲猜誰才是真正的孟孟！</p>
+
+    <div class="stage" id="stageBlock">
+        <div class="quiz-container">
+            <div class="quiz-label" id="quizLabel">心靈感應連線中...</div>
+            <div class="quiz-box" id="quizBox">
+                </div>
+        </div>
+
+        <div class="map-container">
+            <div class="map-label">在這裡找出幸福的座標：</div>
+            <div class="map-wrapper" id="mapWrapper" onclick="placePin(event)">
+                <svg class="minimap-svg" viewBox="0 0 500 333" id="svgTemplate">
+                    <rect width="500" height="333" fill="#1e2235"/>
+                    <rect x="20" y="20" width="460" height="293" fill="#282c44" rx="10"/>
+                    <text x="250" y="50" fill="#4f5678" font-size="20" font-weight="bold" text-anchor="middle">BABYMONSTER MEME STAGE</text>
+                    
+                    <circle cx="100" cy="120" r="30" fill="#ff66b2" stroke="#fff" stroke-width="3"/>
+                    <text x="100" y="125" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">魔性臉 A</text>
+                    
+                    <circle cx="250" cy="110" r="30" fill="#ff66b2" stroke="#fff" stroke-width="3"/>
+                    <text x="250" y="115" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">魔性臉 B</text>
+                    
+                    <circle cx="400" cy="120" r="30" fill="#ff66b2" stroke="#fff" stroke-width="3"/>
+                    <text x="400" y="125" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">魔性臉 C</text>
+                    
+                    <circle cx="120" cy="240" r="30" fill="#ff66b2" stroke="#fff" stroke-width="3"/>
+                    <text x="120" y="245" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">魔性臉 D</text>
+                    
+                    <circle cx="250" cy="250" r="30" fill="#ff66b2" stroke="#fff" stroke-width="3"/>
+                    <text x="250" y="255" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">魔性臉 E</text>
+                    
+                    <circle cx="380" cy="240" r="30" fill="#ff66b2" stroke="#fff" stroke-width="3"/>
+                    <text x="380" y="245" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">魔性臉 F</text>
+                </svg>
+                
+                <div id="playerPin" class="pin"></div>
+                <div id="answerPin" class="ans-pin"></div>
+                <canvas id="lineCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="ending-screen" id="endingScreen">
+            <div class="ending-title">💖 崴孟心靈感應測驗完成 💖</div>
+            <div class="ending-score" id="totalScoreText">最終幸福指數：0 / 15000</div>
+            <div class="ending-comment" id="endingComment">評價計算中...</div>
+            <button onclick="restartGame()">重新測試真愛 ↺</button>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <div class="score-box">
+            <h2 id="scoreResult">本關感應值：--</h2>
+            <p id="distanceResult">點擊右邊地圖，鎖定孟孟的位置！</p>
+        </div>
+        <div class="btn-group">
+            <button onclick="submitAnswer()">提交答案</button>
+            <button class="next-btn" id="nextBtn" onclick="nextRound()">尋找下一個孟孟 ➔</button>
+        </div>
+    </div>
+
+<script>
+    // 🎯 這次改用程式碼畫出的 SVG 圖形座標，完全避開外連被擋的問題！
+    const faces = [
+        { name: "總以崴迷一般難懂的我", x: 100, y: 120 },
+        { name: "孟崴努力澆了水努力澆了水", x: 250, y: 250 },
+        { name: "第三關：終於忘記你的時候你出現在我的孟裡", x: 380, y: 240 }
     ];
 
     let currentRound = 0;
@@ -51,22 +122,30 @@
             document.getElementById('nextBtn').innerText = "尋找下一個孟孟 ➔";
         }
         
-        const quizImg = document.getElementById('quizImage');
         const face = faces[currentRound];
-        
         document.getElementById('quizLabel').innerText = `${face.name}`;
         
-        // 放大對齊
-        const offsetX = 160 - (face.x * 4.8);
-        const offsetY = 160 - (face.y * 4.8);
+        // 動態複製一個 SVG 到左邊當題目，並利用 CSS 進行局部放大
+        const quizBox = document.getElementById('quizBox');
+        quizBox.innerHTML = ''; // 清空
         
-        quizImg.style.left = offsetX + 'px';
-        quizImg.style.top = offsetY + 'px';
+        const svgClone = document.getElementById('svgTemplate').cloneNode(true);
+        svgClone.removeAttribute('id');
+        svgClone.setAttribute('class', 'quiz-svg');
         
+        // 核心數學計算：讓放大鏡視窗的中心(160, 160)對準目標臉孔座標
+        const offsetX = 160 - (face.x * 3.5);
+        const offsetY = 160 - (face.y * 3.5);
+        svgClone.style.left = offsetX + 'px';
+        svgClone.style.top = offsetY + 'px';
+        
+        quizBox.appendChild(svgClone);
+        
+        // 重置狀態
         document.getElementById('playerPin').style.display = 'none';
         document.getElementById('answerPin').style.display = 'none';
         document.getElementById('scoreResult').innerText = "本關感應值：--";
-        document.getElementById('distanceResult').innerText = "點擊地圖，鎖定孟孟的位置！";
+        document.getElementById('distanceResult').innerText = "點擊右邊地圖，鎖定孟孟的位置！";
         guessedX = null; guessedY = null;
         
         const canvas = document.getElementById('lineCanvas');
@@ -109,9 +188,9 @@
         document.getElementById('scoreResult').innerText = `本關感應值：${score} / 5000`;
         
         if(score > 4300) {
-            document.getElementById('distanceResult').innerText = `太閃了吧！誤差僅 ${Math.round(distance)} 像素，這絕對是命定真愛！`;
+            document.getElementById('distanceResult').innerText = `太強了！誤差僅 ${Math.round(distance)} 像素，這絕對是命定真愛！`;
         } else {
-            document.getElementById('distanceResult').innerText = `天啊誤差了 ${Math.round(distance)} 像素！崴崴你是不是認錯孟孟了？`;
+            document.getElementById('distanceResult').innerText = `天啊誤差了 ${Math.round(distance)} 像素！崴崴你認錯人了啦！`;
         }
         
         // 畫虛線
@@ -142,13 +221,12 @@
         }
     }
 
-    // 🌟 最終崴孟大結局評價
     function showEnding() {
         document.getElementById('totalScoreText').innerText = `最終幸福指數：${totalScore} / 15000`;
         
         let comment = "";
         if (totalScore >= 13500) {
-            comment = "恭喜達成【真愛無敵 朝思孟想終於找到泥】結局！崴崴在六個一模一樣的魔性臉孔中完成了神級感應！這波幸福狗糧直接把整個網頁給閃炸了";
+            comment = "恭喜達成【真愛無敵 朝思孟想終於找到泥】結局！崴崴在六個一模一樣的魔性臉孔中完成了神級感應！這波幸福狗糧直接把整個網頁給閃炸了！";
         } else if (totalScore >= 8000) {
             comment = "達成【差點認錯 崴孟受一點傷】結局！雖然順利找到了，但崴崴中間好幾次差點把別人的魔性臉孔當成孟孟，崴崴趕快打電話給媽媽求救吧吧！";
         } else {
