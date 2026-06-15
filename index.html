@@ -3,71 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的物理沙盒垃圾桶</title>
+    <title>⚡ 迷因音效重度污染打擊樂器 ⚡</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #1a1a1a; }
-        canvas { display: block; }
+        /* 基礎暗黑霓虹風格 */
+        body {
+            background-color: #0d0d0d;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 0.1s;
+        }
+
+        h1 { text-shadow: 0 0 10px #ff00ff; }
+
+        /* 按鈕網格組合 */
+        .pad-container {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            gap: 20px;
+        }
+
+        /* 巨大的迷因按鈕 */
+        .meme-pad {
+            width: 150px;
+            height: 150px;
+            background: #222;
+            border: 4px solid #333;
+            border-radius: 15px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: transform 0.05s, box-shadow 0.05s;
+        }
+
+        .meme-pad:active {
+            transform: scale(0.95);
+        }
+
+        /* 個別按鈕發光顏色 */
+        #pad1 { border-color: #ff0055; box-shadow: 0 0 15px #ff0055; }
+        #pad2 { border-color: #00ffcc; box-shadow: 0 0 15px #00ffcc; }
+        #pad3 { border-color: #ffcc00; box-shadow: 0 0 15px #ffcc00; }
+        #pad4 { border-color: #9900ff; box-shadow: 0 0 15px #9900ff; }
+
+        /* 核心：瘋狂震動特效動畫 */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        /* 當畫面被加上這個 class 時，就會瘋狂抖動 */
+        .polluted-shake {
+            animation: shake 0.15s infinite; /* 無限循環震動 */
+        }
     </style>
-    <!-- 1. 引入強大的 2D 物理引擎 Matter.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
 
-<script>
-    // 2. 簡寫常用的 Matter.js 模組
-    const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint } = Matter;
+    <h1>🔊 迷因打擊樂器 (Meme Soundboard)</h1>
+    <p>【請打開聲音】點擊下方按鈕或按下鍵盤對應的數字鍵 (1~4)</p>
 
-    // 3. 建立物理引擎與世界
-    const engine = Engine.create();
-    const world = engine.world;
+    <div class="pad-container" id="board">
+        <button class="meme-pad" id="pad1" onclick="playMeme('meme1.mp3', '#ff0055')">這太狠了 (1)</button>
+        <button class="meme-pad" id="pad2" onclick="playMeme('meme2.mp3', '#00ffcc')">太神啦 (2)</button>
+        <button class="meme-pad" id="pad3" onclick="playMeme('meme3.mp3', '#ffcc00')">九天玄女 (3)</button>
+        <button class="meme-pad" id="pad4" onclick="playMeme('meme4.mp3', '#9900ff')">經典慘叫 (4)</button>
+    </div>
 
-    // 4. 建立渲染器（畫布大小設定為跟瀏覽器視窗一樣大）
-    const render = Render.create({
-        element: document.body,
-        engine: engine,
-        options: {
-            width: window.innerWidth,
-            height: window.innerHeight,
-            wireframes: false, // 關閉線框模式，這樣才能看到顏色
-            background: '#1a1a1a'
+    <script>
+        function playMeme(audioSrc, flashColor) {
+            // 1. 播放音效
+            const audio = new Audio(audioSrc);
+            audio.play().catch(e => console.log("音效檔還沒準備好！補上檔案即可運作。"));
+
+            // 2. 視覺重度污染：背景閃爍霓虹色
+            document.body.style.backgroundColor = flashColor;
+            setTimeout(() => {
+                document.body.style.backgroundColor = '#0d0d0d'; // 0.1秒後恢復黑色
+            }, 100);
+
+            // 3. 視覺重度污染：全畫面瘋狂震動
+            document.body.classList.add('polluted-shake');
+            
+            // 為了不讓畫面一直震下去，設定 300 毫秒後停止震動
+            setTimeout(() => {
+                document.body.classList.remove('polluted-shake');
+            }, 300);
         }
-    });
-    Render.run(render);
-    Runner.run(Runner.create(), engine);
 
-    // 5. 建立看不見的地板和牆壁，防止東西掉出銀幕 (參數：x, y, 寬, 高, 設定)
-    const groundOpts = { isStatic: true, render: { fillStyle: '#333' } };
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    
-    Composite.add(world, [
-        Bodies.rectangle(w / 2, h + 30, w, 60, groundOpts),  // 地板
-        Bodies.rectangle(-30, h / 2, 60, h, groundOpts),     // 左牆
-        Bodies.rectangle(w + 30, h / 2, 60, h, groundOpts)    // 右牆
-    ]);
-
-    // 6. 建立你的網頁元件（丟進去的方塊！）
-    const boxOptions = { 
-        restitution: 0.6, // 彈性 (0 = 不彈, 1 = 超彈)
-        friction: 0.1     // 摩擦力
-    };
-
-    // 這裡代表你的大頭貼、按鈕、履歷文字方塊
-    const myPhoto = Bodies.rectangle(w * 0.3, 100, 150, 150, { ...boxOptions, render: { fillStyle: '#ff6b6b' } });
-    const aboutMeBtn = Bodies.rectangle(w * 0.5, 50, 200, 60, { ...boxOptions, render: { fillStyle: '#4ecdc4' } });
-    const portfolioBtn = Bodies.rectangle(w * 0.7, 120, 180, 60, { ...boxOptions, render: { fillStyle: '#ffe66d' } });
-
-    Composite.add(world, [myPhoto, aboutMeBtn, portfolioBtn]);
-
-    // 7. 加入滑鼠控制（讓使用者可以抓取、甩動元件）
-    const mouse = Mouse.create(render.canvas);
-    const mouseConstraint = MouseConstraint.create(engine, {
-        mouse: mouse,
-        constraint: { stiction: 0.1, render: { visible: false } }
-    });
-    Composite.add(world, mouseConstraint);
-    render.mouse = mouse;
-</script>
-
+        // 支援鍵盤游玩 (按數字鍵 1, 2, 3, 4 也能觸發)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '1') document.getElementById('pad1').click();
+            if (e.key === '2') document.getElementById('pad2').click();
+            if (e.key === '3') document.getElementById('pad3').click();
+            if (e.key === '4') document.getElementById('pad4').click();
+        });
+    </script>
 </body>
 </html>
