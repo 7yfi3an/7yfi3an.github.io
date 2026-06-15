@@ -3,104 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 遊戲地圖大猜謎！</title>
+    <title>🕵️ 尋找魔性臉孔：迷因威力在哪裡？</title>
     <style>
-        body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; margin: 0; }
-        .container { display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background: #0a0a0a; color: #fff; font-family: sans-serif; text-align: center; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        h1 { text-shadow: 0 0 10px #ff00ff; }
         
         /* 題目大圖區 */
-        .quiz-image { width: 600px; height: 350px; border: 4px solid #333; background: #222; object-fit: cover; }
+        .quiz-area { width: 500px; height: 350px; border: 5px solid #333; overflow: hidden; position: relative; background: #000; box-shadow: 0 0 20px rgba(255, 0, 255, 0.3); }
+        .quiz-image { 
+            object-fit: none; /* 🌟 關鍵：不縮放圖片 */
+            position: absolute;
+            transform-origin: 0 0; /* 🌟 關鍵：從圖片左上角開始對齊 */
+            transform: scale(4); /* 🌟 關鍵：把題目局部放大 4 倍！讓它更魔性！ */
+        }
         
-        /* 底部地圖與計分區 */
-        .game-area { display: flex; margin-top: 20px; gap: 40px; align-items: center; }
+        /* 遊戲與計分區 */
+        .game-controls { display: flex; margin-top: 20px; gap: 30px; align-items: center; }
         
         /* 互動小地圖（猜測區） */
-        .map-wrapper { position: relative; width: 300px; height: 300px; cursor: crosshair; }
-        .minimap { width: 100%; height: 100%; border: 2px solid #fff; }
+        .map-wrapper { position: relative; width: 300px; cursor: crosshair; }
+        .minimap { width: 100%; border: 2px solid #fff; box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); }
         
-        /* 玩家點擊的紅點標籤 */
+        /* 玩家與正確答案標籤 */
         .pin { position: absolute; width: 10px; height: 10px; background: red; border-radius: 50%; transform: translate(-50%, -50%); display: none; }
-        /* 正確答案的綠點標籤 */
-        .ans-pin { position: absolute; width: 10px; height: 10px; background: #00ffcc; border-radius: 50%; transform: translate(-50%, -50%); display: none; }
+        .ans-pin { position: absolute; width: 12px; height: 12px; background: #00ffcc; border-radius: 50%; transform: translate(-50%, -50%); display: none; box-shadow: 0 0 10px #00ffcc; }
         
-        button { padding: 10px 20px; font-size: 16px; background: #00ffcc; color: #000; border: none; cursor: pointer; font-weight: bold; }
+        /* 按鈕與計分 */
+        .score-panel { text-align: left; }
+        button { padding: 12px 24px; font-size: 16px; background: #00ffcc; color: #000; border: none; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        .round-btns { display: flex; gap: 5px; margin-top: 20px; }
+        .round-btns button { background: #333; color: #fff; border: 1px solid #666; padding: 5px 10px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🧭 這是遊戲裡的哪裡？</h1>
-    <p>看上方的風景照，並在下方的全景地圖上點擊你認為正確的位置！</p>
+    <h1>🕵️ 尋找魔性臉孔：迷因版 Where's Wally?</h1>
+    <p>看上方的局部放大圖，在下方全景圖上盲猜它原本是哪一個成員的臉！</p>
 
-    <!-- 1. 題目照片 -->
-    <img src="quiz1.jpg" class="quiz-image" alt="題目風景照（請自行替換成你的遊戲截圖）">
+    <div class="quiz-area">
+        <img src="source.png" class="quiz-image" id="quizImage" alt="局部放大魔性臉孔題目">
+    </div>
 
-    <div class="game-area">
-        <!-- 2. 右下角小地圖（附帶點擊功能） -->
+    <div class="game-controls">
         <div class="map-wrapper" id="mapWrapper" onclick="placePin(event)">
-            <img src="full_map.jpg" class="minimap" alt="全景地圖（請自行替換成遊戲小地圖）">
+            <img src="source.png" class="minimap" alt="女團全景迷因原圖">
             <div id="playerPin" class="pin"></div>
             <div id="answerPin" class="ans-pin"></div>
         </div>
 
-        <!-- 3. 控制與計分面板 -->
-        <div>
+        <div class="score-panel">
             <button onclick="submitAnswer()">提交答案</button>
             <h2 id="scoreResult">得分：--</h2>
             <p id="distanceResult"></p>
+            <p>【切換題目】</p>
+            <div class="round-btns">
+                <button onclick="startRound(0)">1. 左上</button>
+                <button onclick="startRound(1)">2. 正下</button>
+                <button onclick="startRound(2)">3. 右下</button>
+            </div>
         </div>
     </div>
-</div>
 
 <script>
-    // 設定這張題目照片的「真實座標」(在 300x300 的地圖中的像素位置)
-    // 假設這張照片是在地圖正中央偏右上一點點的地方拍的
-    const correctX = 180; 
-    const correctY = 120;
+    // 🌟 核心：設定三個不同的題目關卡 (X, Y 座標需根據你的圖片手動修改！)
+    const faces = [
+        { name: "題1: 左上成员", x: 184, y: 198 }, // 👈 請填入你測量的左上臉孔中心座標
+        { name: "題2: 下排中間", x: 494, y: 440 }, // 👈 請填入你測量的下排中間臉孔中心座標
+        { name: "題3: 下排右側", x: 742, y: 462 }  // 👈 請填入你測量的下排右側臉孔中心座標
+    ];
 
+    let currentRound = 0;
     let guessedX = null;
     let guessedY = null;
 
-    // 當玩家點擊小地圖時
+    // 開始新的一關：切換題目放大的位置
+    function startRound(roundIndex) {
+        currentRound = roundIndex;
+        const quizImg = document.getElementById('quizImage');
+        const face = faces[currentRound];
+        
+        // 🌟 關鍵：使用 CSS 鎖定並裁切出該臉孔局部 (利用 object-position)
+        quizImg.style.objectPosition = `-${face.x}px -${face.y}px`;
+        
+        // 重置所有標籤和分數
+        document.getElementById('playerPin').style.display = 'none';
+        document.getElementById('answerPin').style.display = 'none';
+        document.getElementById('scoreResult').innerText = "得分：--";
+        document.getElementById('distanceResult').innerText = "";
+        guessedX = null; guessedY = null;
+    }
+
+    // 當玩家點擊全景地圖時
     function placePin(event) {
         const rect = document.getElementById('mapWrapper').getBoundingClientRect();
-        // 計算出相對於地圖圖片內部的 X, Y 座標
         guessedX = event.clientX - rect.left;
         guessedY = event.clientY - rect.top;
-
-        // 把紅點移到玩家點擊的位置
         const pin = document.getElementById('playerPin');
         pin.style.left = guessedX + 'px';
         pin.style.top = guessedY + 'px';
         pin.style.display = 'block';
     }
 
-    // 當玩家點擊提交時
+    // 當玩家提交答案時
     function submitAnswer() {
-        if (guessedX === null) {
-            alert('請先在地圖上點擊你的猜測位置！');
-            return;
-        }
-
+        if (guessedX === null) return;
+        const face = faces[currentRound];
+        
         // 顯示正確答案的綠點
         const ansPin = document.getElementById('answerPin');
-        ansPin.style.left = correctX + 'px';
-        ansPin.style.top = correctY + 'px';
+        ansPin.style.left = face.x + 'px';
+        ansPin.style.top = face.y + 'px';
         ansPin.style.display = 'block';
 
-        // 核心：使用數學公式計算兩點距離 $d = \sqrt{(x_1-x_2)^2 + (y_1-y_2)^2}$
-        const dx = guessedX - correctX;
-        const dy = guessedY - correctY;
+        // 計算距離公式 $d = \sqrt{(x_1-x_2)^2 + (y_1-y_2)^2}$
+        const dx = guessedX - face.x;
+        const dy = guessedY - face.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // 根據距離換算分數（距離為0得到 5000滿分，越遠扣越多，最低0分）
-        let score = Math.round(5000 - (distance * 25));
+        // 換算分數 (滿分 5000)
+        let score = Math.round(5000 - (distance * 15));
         if (score < 0) score = 0;
 
-        // 顯示結果
         document.getElementById('scoreResult').innerText = `得分：${score} / 5000`;
         document.getElementById('distanceResult').innerText = `誤差距離：${Math.round(distance)} 像素`;
     }
+
+    // 初始化：開始第一關
+    startRound(0);
 </script>
 
 </body>
