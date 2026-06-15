@@ -8,7 +8,7 @@
         body { 
             background: #0d0e15; 
             color: #fff; 
-            font-family: sans-serif; 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
             text-align: center; 
             margin: 0; 
             display: flex; 
@@ -19,8 +19,8 @@
             overflow-x: hidden;
         }
         
-        h1 { text-shadow: 0 0 15px #ff007f; margin-bottom: 5px; font-size: 28px; }
-        .subtitle { color: #8a8f98; margin-top: 0; margin-bottom: 25px; }
+        h1 { text-shadow: 0 0 15px #ff007f; margin-bottom: 5px; font-size: 32px; color: #fff; }
+        .subtitle { color: #8a8f98; margin-top: 0; margin-bottom: 25px; font-size: 16px; }
         
         /* 遊戲舞台 */
         .stage { 
@@ -40,7 +40,7 @@
         .quiz-label { font-size: 18px; font-weight: bold; color: #ff007f; margin-bottom: 10px; text-shadow: 0 0 8px rgba(255,0,127,0.5); }
         .map-label { font-size: 18px; font-weight: bold; color: #00ffcc; margin-bottom: 10px; text-shadow: 0 0 8px rgba(0,255,204,0.5); }
 
-        /* 局部放大區 */
+        /* 左邊局部放大鏡（改用高科技 Canvas） */
         .quiz-box { 
             width: 320px; 
             height: 320px; 
@@ -48,41 +48,45 @@
             border-radius: 12px; 
             overflow: hidden; 
             position: relative; 
-            background: #000; 
+            background: #05060a; 
             box-shadow: 0 0 20px rgba(255, 0, 127, 0.4); 
         }
 
-        .quiz-image { 
-            position: absolute; 
-            transform-origin: 0 0; 
-            transform: scale(4.5); /* 放大4.5倍，看清魔性細節 */
-            width: 500px; 
-            height: auto; 
+        #quizCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         
-        /* 全景點擊區 */
+        /* 右邊全景尋找區 */
         .map-wrapper { 
             position: relative; 
             width: 500px; 
+            height: 333px;
             cursor: crosshair; 
             border-radius: 12px; 
             overflow: hidden; 
             border: 4px solid #00ffcc; 
             box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); 
-            line-height: 0; 
+            background: #111424;
         }
 
-        .minimap { width: 100%; height: auto; display: block; }
+        #mainCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
         
-        /* 標記點 */
-        .pin { position: absolute; width: 16px; height: 16px; background: #ff3333; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; box-shadow: 0 0 8px #ff3333; }
-        .ans-pin { position: absolute; width: 16px; height: 16px; background: #00ffcc; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; box-shadow: 0 0 12px #00ffcc; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        /* 玩家標記點 */
+        .pin { position: absolute; width: 16px; height: 16px; background: #ff3333; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; box-shadow: 0 0 8px #ff3333; pointer-events: none; }
+        .ans-pin { position: absolute; width: 16px; height: 16px; background: #00ffcc; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; box-shadow: 0 0 12px #00ffcc; pointer-events: none; }
+        #lineCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
         
-        /* 下方面板 */
+        /* 下方操作面板 */
         .control-panel { margin-top: 25px; background: #161925; padding: 20px 40px; border-radius: 15px; border: 1px solid #252a3e; display: flex; gap: 50px; align-items: center; }
-        .score-box h2 { margin: 0; font-size: 24px; color: #ffe600; }
-        .score-box p { margin: 5px 0 0 0; color: #a0a5b0; }
+        .score-box h2 { margin: 0; font-size: 24px; color: #ffe600; text-align: left; }
+        .score-box p { margin: 5px 0 0 0; color: #a0a5b0; text-align: left; }
         .btn-group { display: flex; gap: 15px; }
         
         button { padding: 12px 28px; font-size: 16px; background: #00ffcc; color: #0b0c10; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
@@ -90,7 +94,7 @@
         button.next-btn { background: #ff007f; color: #fff; }
         button.next-btn:hover { background: #cc0066; }
 
-        /* 終極結尾大字報彈窗 */
+        /* 🌟 最終大結局彈窗 */
         .ending-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -107,7 +111,7 @@
         }
 
         .ending-screen.show { opacity: 1; pointer-events: auto; }
-        .ending-title { font-size: 36px; color: #ff007f; text-shadow: 0 0 20px rgba(255,0,127,0.6); margin-bottom: 10px; font-weight: bold; }
+        .ending-title { font-size: 38px; color: #ff007f; text-shadow: 0 0 20px rgba(255,0,127,0.6); margin-bottom: 10px; font-weight: bold; }
         .ending-score { font-size: 32px; color: #ffe600; margin-bottom: 20px; }
         .ending-comment { font-size: 20px; color: #fff; max-width: 80%; line-height: 1.6; margin-bottom: 30px; }
     </style>
@@ -115,23 +119,23 @@
 <body>
 
     <h1>🕵️ 替崴崴尋找幸福：孟孟你在哪TT</h1>
-    <p class="subtitle">六個複製人魔性臉孔中，誰才是真正的孟孟？請看左邊局部放大，在右邊盲猜出她的座標！</p>
+    <p class="subtitle">舞台上散落著散發魔性光芒的能量球...請看左邊局部放大，在右邊盲猜出真愛孟孟的座標！</p>
 
     <div class="stage" id="stageBlock">
         <div class="quiz-container">
             <div class="quiz-label" id="quizLabel">心靈感應連線中...</div>
             <div class="quiz-box">
-                <img src="" class="quiz-image" id="quizImage">
+                <canvas id="quizCanvas" width="320" height="320"></canvas>
             </div>
         </div>
 
         <div class="map-container">
             <div class="map-label">在這裡找出幸福的座標：</div>
             <div class="map-wrapper" id="mapWrapper" onclick="placePin(event)">
-                <img src="" class="minimap" id="mainMap">
+                <canvas id="mainCanvas" width="500" height="333"></canvas>
                 <div id="playerPin" class="pin"></div>
                 <div id="answerPin" class="ans-pin"></div>
-                <canvas id="lineCanvas"></canvas>
+                <canvas id="lineCanvas" width="500" height="333"></canvas>
             </div>
         </div>
 
@@ -155,18 +159,18 @@
     </div>
 
 <script>
-    // 💥 終極大絕招：把你的迷因圖片直接「打碎成程式碼密碼」，這下全世界沒有任何人能阻擋這張圖加載了！
-    const finalSafeMeme = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAgESAAMAAAABAAEAAIdpAAQAAAABAAAAJgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAADwKADAAQAAAABAAABwgAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmgiZfnLI0J/8AAEQgBwgPAAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHAkKC/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usf466mCg4SFhoeIiYqSk5SVl6Y29kZ3N3eHl6f3yFl5eYmZqbup6en3dxsfExcbHyMnKy0tPU1dbX2Nna4eX56hp6v9r19vf49vbl5ceX15eb39fd3dB3f3h3eHf6f/aAAwDAQICEkJggg==/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAIBAQEBAQIBAQECAgICAgQDAgICAgUEBAMEBgUGBgYFBgYGBwkIBgcJBwYGCAsICQoKCgoKBggLDAsKDAkKCgr/2wBDAQICAgICAgUDAwUKBwYHCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgr/wAARCAHCA+gDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usf466mCg4SFhoeIiYqSk5SVl6Y29kZ3N3eHl6f3yFl5eYmZqbup6en3dxsfExcbHyMnKy0tPU1dbX2Nna4eX56hp6v9r19vf49vbl5ceX15eb39fd3dB3f3h3eHf6f/aAAwDAQICEkJggg==";
-
-    // 將圖片塞入網頁元素中
-    document.getElementById('mainMap').src = finalSafeMeme;
-    document.getElementById('quizImage').src = finalSafeMeme;
-
-    // 🎯 專屬崴孟客製化關卡設定
+    // 🎯 完美避開外連圖源限制，直接用程式碼生成色彩豐富的魔性舞台！
     const faces = [
-        { name: "第一關：左上角那位正在「深情凝視」的孟孟", x: 92, y: 104 },
-        { name: "第二關：正下方那位笑得崴崴心裡發寒的孟孟", x: 246, y: 220 },
-        { name: "第三關：右下角自帶 V 字手勢、暗示幸福的帥氣孟孟", x: 367, y: 236 }
+        { name: "第一關：隱藏在左上角的「害羞粉紅孟孟」", x: 110, y: 100, color: "#ff66b2" },
+        { name: "第二關：躲在正中央正下方的「魔性狂笑孟孟」", x: 250, y: 240, color: "#9933ff" },
+        { name: "第三關：右下角自帶勝利手勢氣場的「傲嬌帥氣孟孟」", x: 400, y: 220, color: "#33ccff" }
+    ];
+
+    // 其他干擾的複製人球球
+    const decoCircles = [
+        { x: 260, y: 90, color: "#ff9933" },
+        { x: 410, y: 85, color: "#33cc33" },
+        { x: 90, y: 250, color: "#ffff33" }
     ];
 
     let currentRound = 0;
@@ -174,6 +178,40 @@
     let guessedY = null;
     let isSubmitted = false;
     let totalScore = 0;
+
+    // 繪製右側大場景
+    function drawMainScene() {
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 背景底色
+        ctx.fillStyle = "#111424";
+        ctx.fillRect(0, 0, 500, 333);
+        
+        // 畫舞台網格線
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.lineWidth = 1;
+        for(let i=0; i<500; i+=30) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 333); ctx.stroke(); }
+        for(let j=0; j<333; j+=30) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(500, j); ctx.stroke(); }
+
+        // 畫出所有孟孟與複製人
+        [...faces, ...decoCircles].forEach(c => {
+            // 霓虹外發光
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = c.color;
+            ctx.fillStyle = c.color;
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 內圈核心
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
 
     function startRound(roundIndex) {
         currentRound = roundIndex;
@@ -185,22 +223,44 @@
             document.getElementById('nextBtn').innerText = "尋找下一個孟孟 ➔";
         }
         
-        const quizImg = document.getElementById('quizImage');
         const face = faces[currentRound];
-        
         document.getElementById('quizLabel').innerText = `${face.name}`;
         
-        // 核心放大位置對齊計算
-        const offsetX = 160 - (face.x * 4.5);
-        const offsetY = 160 - (face.y * 4.5);
+        // 渲染左側放大鏡
+        const qCanvas = document.getElementById('quizCanvas');
+        const qCtx = qCanvas.getContext('2d');
+        qCtx.clearRect(0, 0, 320, 320);
         
-        quizImg.style.left = offsetX + 'px';
-        quizImg.style.top = offsetY + 'px';
+        // 模擬放大鏡鏡像：將目標物體放大4倍呈現在中央
+        qCtx.save();
+        qCtx.translate(160, 160);
+        qCtx.scale(4, 4);
+        qCtx.translate(-face.x, -face.y);
         
+        // 在放大鏡裡重繪場景
+        [...faces, ...decoCircles].forEach(c => {
+            qCtx.fillStyle = c.color;
+            qCtx.beginPath();
+            qCtx.arc(c.x, c.y, 25, 0, Math.PI * 2);
+            qCtx.fill();
+            qCtx.fillStyle = "#fff";
+            qCtx.beginPath();
+            qCtx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+            qCtx.fill();
+        });
+        qCtx.restore();
+
+        // 增加十字瞄準線裝飾
+        qCtx.strokeStyle = "rgba(255, 0, 127, 0.3)";
+        qCtx.lineWidth = 2;
+        qCtx.beginPath(); qCtx.moveTo(160, 0); qCtx.lineTo(160, 320); qCtx.stroke();
+        qCtx.beginPath(); qCtx.moveTo(0, 160); qCtx.lineTo(320, 160); qCtx.stroke();
+        
+        // 重置點擊狀態
         document.getElementById('playerPin').style.display = 'none';
         document.getElementById('answerPin').style.display = 'none';
         document.getElementById('scoreResult').innerText = "本關感應值：--";
-        document.getElementById('distanceResult').innerText = "點擊地圖，鎖定孟孟的位置！";
+        document.getElementById('distanceResult').innerText = "點擊右邊地圖，鎖定孟孟的位置！";
         guessedX = null; guessedY = null;
         
         const canvas = document.getElementById('lineCanvas');
@@ -248,10 +308,8 @@
             document.getElementById('distanceResult').innerText = `天啊誤差了 ${Math.round(distance)} 像素！崴崴你是不是認錯孟孟了？`;
         }
         
-        // 畫虛線
+        // 畫連線虛線
         const canvas = document.getElementById('lineCanvas');
-        canvas.width = 500;
-        canvas.height = 333;
         const ctx = canvas.getContext('2d');
         ctx.beginPath();
         ctx.strokeStyle = '#ff3333';
@@ -281,11 +339,11 @@
         
         let comment = "";
         if (totalScore >= 13500) {
-            comment = "恭喜達成【真愛無敵】結局！崴崴在六個一模一樣的魔性臉孔中完成了神級感應！這波狗糧直接把整個網頁給閃炸了，期末老師絕對雙手奉上 A+！";
+            comment = "恭喜達成【真愛無敵】大結局！崴崴在所有斑斕的偽裝魔性球中精確鎖定了孟孟！這波心靈感應直接把網頁給閃炸了，期末不拿 A+ 說不過去！";
         } else if (totalScore >= 8000) {
-            comment = "達成【差點認錯】結局！雖然順利找到了，但崴崴中間好幾次差點把別人的魔性臉孔當成孟孟，回家準備跪算盤吧！";
+            comment = "達成【差點認錯】大結局！雖然勉強找到了，但崴崴點得歪七扭八，顯然好幾次差點把干擾球認成孟孟，回家準備跪算盤吧！";
         } else {
-            comment = "達成【世界上最遙遠的距離】結局！幸福指數慘不忍睹，崴崴你根本認不出孟孟在哪裡！建議立刻重啟網頁，重新修煉你們的心靈感應！";
+            comment = "達成【最遙遠的距離】大結局！幸福指數慘不忍睹，崴崴你完全分不出哪一個才是孟孟！建議立刻重啟網頁，重新修煉你們的心靈感應！";
         }
         
         document.getElementById('endingComment').innerText = comment;
@@ -299,6 +357,7 @@
     }
 
     window.onload = function() {
+        drawMainScene();
         startRound(0);
     };
 </script>
