@@ -1,55 +1,73 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>K-POP SURVIVAL SHOW FINAL</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的物理沙盒垃圾桶</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #1a1a1a; }
+        canvas { display: block; }
+    </style>
+    <!-- 1. 引入強大的 2D 物理引擎 Matter.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+</head>
+<body>
 
-<style>
-body{
-    margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background: radial-gradient(circle at top,#6d4cff,#0b0b0b);
-    font-family:Arial;
-    color:white;
-}
+<script>
+    // 2. 簡寫常用的 Matter.js 模組
+    const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint } = Matter;
 
-/* 卡片 */
-.card{
-    width:90%;
-    max-width:700px;
-    background:rgba(255,255,255,0.08);
-    padding:25px;
-    border-radius:20px;
-    backdrop-filter:blur(10px);
-}
+    // 3. 建立物理引擎與世界
+    const engine = Engine.create();
+    const world = engine.world;
 
-h1{
-    text-align:center;
-}
+    // 4. 建立渲染器（畫布大小設定為跟瀏覽器視窗一樣大）
+    const render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            wireframes: false, // 關閉線框模式，這樣才能看到顏色
+            background: '#1a1a1a'
+        }
+    });
+    Render.run(render);
+    Runner.run(Runner.create(), engine);
 
-/* 情境 */
-#stage{
-    text-align:center;
-    color:#ffda6d;
-    margin-bottom:10px;
-}
+    // 5. 建立看不見的地板和牆壁，防止東西掉出銀幕 (參數：x, y, 寬, 高, 設定)
+    const groundOpts = { isStatic: true, render: { fillStyle: '#333' } };
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    
+    Composite.add(world, [
+        Bodies.rectangle(w / 2, h + 30, w, 60, groundOpts),  // 地板
+        Bodies.rectangle(-30, h / 2, 60, h, groundOpts),     // 左牆
+        Bodies.rectangle(w + 30, h / 2, 60, h, groundOpts)    // 右牆
+    ]);
 
-#story{
-    margin:20px 0;
-    font-size:18px;
-    line-height:1.6;
-    min-height:80px;
-}
+    // 6. 建立你的網頁元件（丟進去的方塊！）
+    const boxOptions = { 
+        restitution: 0.6, // 彈性 (0 = 不彈, 1 = 超彈)
+        friction: 0.1     // 摩擦力
+    };
 
-.option{
-    display:block;
-    width:100%;
-    margin:10px 0;
-    padding:12px;
-    border:none;
-    border-radius:12px;
-    cursor
+    // 這裡代表你的大頭貼、按鈕、履歷文字方塊
+    const myPhoto = Bodies.rectangle(w * 0.3, 100, 150, 150, { ...boxOptions, render: { fillStyle: '#ff6b6b' } });
+    const aboutMeBtn = Bodies.rectangle(w * 0.5, 50, 200, 60, { ...boxOptions, render: { fillStyle: '#4ecdc4' } });
+    const portfolioBtn = Bodies.rectangle(w * 0.7, 120, 180, 60, { ...boxOptions, render: { fillStyle: '#ffe66d' } });
+
+    Composite.add(world, [myPhoto, aboutMeBtn, portfolioBtn]);
+
+    // 7. 加入滑鼠控制（讓使用者可以抓取、甩動元件）
+    const mouse = Mouse.create(render.canvas);
+    const mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: { stiction: 0.1, render: { visible: false } }
+    });
+    Composite.add(world, mouseConstraint);
+    render.mouse = mouse;
+</script>
+
+</body>
+</html>
