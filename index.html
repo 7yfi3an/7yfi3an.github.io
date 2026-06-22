@@ -1,365 +1,284 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️ 替崴崴尋找幸福：孟孟你在哪TT</title>
-    <style>
-        body { 
-            background: #0d0e15; 
-            color: #fff; 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            text-align: center; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        h1 { text-shadow: 0 0 15px #ff007f; margin-bottom: 5px; font-size: 32px; color: #fff; }
-        .subtitle { color: #8a8f98; margin-top: 0; margin-bottom: 25px; font-size: 16px; }
-        
-        /* 遊戲舞台 */
-        .stage { 
-            display: flex; 
-            flex-direction: row; 
-            gap: 40px; 
-            align-items: flex-start; 
-            background: #161925; 
-            padding: 30px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            border: 1px solid #252a3e; 
-            position: relative;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1～25 反應速度挑戰</title>
 
-        .quiz-container, .map-container { display: flex; flex-direction: column; align-items: center; }
-        .quiz-label { font-size: 18px; font-weight: bold; color: #ff007f; margin-bottom: 10px; text-shadow: 0 0 8px rgba(255,0,127,0.5); }
-        .map-label { font-size: 18px; font-weight: bold; color: #00ffcc; margin-bottom: 10px; text-shadow: 0 0 8px rgba(0,255,204,0.5); }
+<style>
+*{
+    box-sizing:border-box;
+}
 
-        /* 左邊局部放大鏡（改用高科技 Canvas） */
-        .quiz-box { 
-            width: 320px; 
-            height: 320px; 
-            border: 4px solid #ff007f; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            position: relative; 
-            background: #05060a; 
-            box-shadow: 0 0 20px rgba(255, 0, 127, 0.4); 
-        }
+body{
+    margin:0;
+    padding:20px;
+    font-family:Arial,sans-serif;
+    text-align:center;
+    background:#f5f5f5;
+}
 
-        #quizCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        
-        /* 右邊全景尋找區 */
-        .map-wrapper { 
-            position: relative; 
-            width: 500px; 
-            height: 333px;
-            cursor: crosshair; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            border: 4px solid #00ffcc; 
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); 
-            background: #111424;
-        }
+h1{
+    margin-bottom:10px;
+}
 
-        #mainCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-        
-        /* 玩家標記點 */
-        .pin { position: absolute; width: 16px; height: 16px; background: #ff3333; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; box-shadow: 0 0 8px #ff3333; pointer-events: none; }
-        .ans-pin { position: absolute; width: 16px; height: 16px; background: #00ffcc; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 10; box-shadow: 0 0 12px #00ffcc; pointer-events: none; }
-        #lineCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
-        
-        /* 下方操作面板 */
-        .control-panel { margin-top: 25px; background: #161925; padding: 20px 40px; border-radius: 15px; border: 1px solid #252a3e; display: flex; gap: 50px; align-items: center; }
-        .score-box h2 { margin: 0; font-size: 24px; color: #ffe600; text-align: left; }
-        .score-box p { margin: 5px 0 0 0; color: #a0a5b0; text-align: left; }
-        .btn-group { display: flex; gap: 15px; }
-        
-        button { padding: 12px 28px; font-size: 16px; background: #00ffcc; color: #0b0c10; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        button:hover { background: #00ccaa; transform: translateY(-2px); }
-        button.next-btn { background: #ff007f; color: #fff; }
-        button.next-btn:hover { background: #cc0066; }
+#timer{
+    font-size:32px;
+    font-weight:bold;
+    color:#ff5722;
+    margin:15px 0;
+}
 
-        /* 🌟 最終大結局彈窗 */
-        .ending-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 12, 16, 0.98);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 20px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
+#bestTime{
+    font-size:20px;
+    color:#2196f3;
+    font-weight:bold;
+    margin-bottom:20px;
+}
 
-        .ending-screen.show { opacity: 1; pointer-events: auto; }
-        .ending-title { font-size: 38px; color: #ff007f; text-shadow: 0 0 20px rgba(255,0,127,0.6); margin-bottom: 10px; font-weight: bold; }
-        .ending-score { font-size: 32px; color: #ffe600; margin-bottom: 20px; }
-        .ending-comment { font-size: 20px; color: #fff; max-width: 80%; line-height: 1.6; margin-bottom: 30px; }
-    </style>
+#game{
+    width:min(95vw,500px);
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+    border-radius:12px;
+}
+
+.cell{
+    aspect-ratio:1/1;
+    border:none;
+    border-radius:12px;
+    background:white;
+    font-size:28px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 2px 5px rgba(0,0,0,.15);
+    transition:.2s;
+}
+
+.cell:hover{
+    transform:scale(1.05);
+}
+
+.correct{
+    background:#4caf50;
+    color:white;
+}
+
+.wrong{
+    background:#ff4d4d !important;
+    color:white;
+    animation:shake .3s;
+}
+
+@keyframes shake{
+    0%{transform:translateX(0);}
+    25%{transform:translateX(-5px);}
+    50%{transform:translateX(5px);}
+    75%{transform:translateX(-5px);}
+    100%{transform:translateX(0);}
+}
+
+.gameWrong{
+    animation:gameFlash .3s;
+}
+
+@keyframes gameFlash{
+    0%{background:transparent;}
+    50%{background:rgba(255,0,0,.15);}
+    100%{background:transparent;}
+}
+
+#restart{
+    margin-top:25px;
+    padding:12px 24px;
+    border:none;
+    border-radius:10px;
+    background:#2196f3;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+}
+
+#restart:hover{
+    opacity:.9;
+}
+
+@media(max-width:600px){
+
+    .cell{
+        font-size:22px;
+    }
+
+    #timer{
+        font-size:28px;
+    }
+}
+</style>
 </head>
 <body>
 
-    <h1>🕵️ 替崴崴尋找幸福：孟孟你在哪TT</h1>
-    <p class="subtitle">舞台上散落著散發魔性光芒的能量球...請看左邊局部放大，在右邊盲猜出真愛孟孟的座標！</p>
+<h1>1～25 反應速度挑戰</h1>
+<p>請依序點擊 1 → 25</p>
 
-    <div class="stage" id="stageBlock">
-        <div class="quiz-container">
-            <div class="quiz-label" id="quizLabel">心靈感應連線中...</div>
-            <div class="quiz-box">
-                <canvas id="quizCanvas" width="320" height="320"></canvas>
-            </div>
-        </div>
+<div id="timer">0.000 秒</div>
+<div id="bestTime">最佳紀錄：尚無</div>
 
-        <div class="map-container">
-            <div class="map-label">在這裡找出幸福的座標：</div>
-            <div class="map-wrapper" id="mapWrapper" onclick="placePin(event)">
-                <canvas id="mainCanvas" width="500" height="333"></canvas>
-                <div id="playerPin" class="pin"></div>
-                <div id="answerPin" class="ans-pin"></div>
-                <canvas id="lineCanvas" width="500" height="333"></canvas>
-            </div>
-        </div>
+<div id="game"></div>
 
-        <div class="ending-screen" id="endingScreen">
-            <div class="ending-title">💖 崴孟心靈感應測驗完成 💖</div>
-            <div class="ending-score" id="totalScoreText">最終幸福指數：0 / 15000</div>
-            <div class="ending-comment" id="endingComment">評價計算中...</div>
-            <button onclick="restartGame()">重新測試真愛 ↺</button>
-        </div>
-    </div>
-
-    <div class="control-panel">
-        <div class="score-box">
-            <h2 id="scoreResult">本關感應值：--</h2>
-            <p id="distanceResult">點擊地圖，鎖定孟孟的位置！</p>
-        </div>
-        <div class="btn-group">
-            <button onclick="submitAnswer()">提交答案</button>
-            <button class="next-btn" id="nextBtn" onclick="nextRound()">尋找下一個孟孟 ➔</button>
-        </div>
-    </div>
+<button id="restart">重新開始</button>
 
 <script>
-    // 🎯 完美避開外連圖源限制，直接用程式碼生成色彩豐富的魔性舞台！
-    const faces = [
-        { name: "第一關：隱藏在左上角的「害羞粉紅孟孟」", x: 110, y: 100, color: "#ff66b2" },
-        { name: "第二關：躲在正中央正下方的「魔性狂笑孟孟」", x: 250, y: 240, color: "#9933ff" },
-        { name: "第三關：右下角自帶勝利手勢氣場的「傲嬌帥氣孟孟」", x: 400, y: 220, color: "#33ccff" }
-    ];
 
-    // 其他干擾的複製人球球
-    const decoCircles = [
-        { x: 260, y: 90, color: "#ff9933" },
-        { x: 410, y: 85, color: "#33cc33" },
-        { x: 90, y: 250, color: "#ffff33" }
-    ];
+const game = document.getElementById("game");
+const timerDisplay = document.getElementById("timer");
+const bestTimeDisplay = document.getElementById("bestTime");
+const restartBtn = document.getElementById("restart");
 
-    let currentRound = 0;
-    let guessedX = null;
-    let guessedY = null;
-    let isSubmitted = false;
-    let totalScore = 0;
+let currentNumber = 1;
+let startTime = null;
+let timerInterval = null;
+let gameStarted = false;
 
-    // 繪製右側大場景
-    function drawMainScene() {
-        const canvas = document.getElementById('mainCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // 背景底色
-        ctx.fillStyle = "#111424";
-        ctx.fillRect(0, 0, 500, 333);
-        
-        // 畫舞台網格線
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-        ctx.lineWidth = 1;
-        for(let i=0; i<500; i+=30) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 333); ctx.stroke(); }
-        for(let j=0; j<333; j+=30) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(500, j); ctx.stroke(); }
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+    }
+}
 
-        // 畫出所有孟孟與複製人
-        [...faces, ...decoCircles].forEach(c => {
-            // 霓虹外發光
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = c.color;
-            ctx.fillStyle = c.color;
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, 25, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 內圈核心
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = "#fff";
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
-            ctx.fill();
+function loadBestTime(){
+
+    const best = localStorage.getItem("bestTime25");
+
+    if(best){
+        bestTimeDisplay.textContent =
+        `最佳紀錄：${best} 秒`;
+    }else{
+        bestTimeDisplay.textContent =
+        "最佳紀錄：尚無";
+    }
+}
+
+function startGame(){
+
+    game.innerHTML = "";
+
+    clearInterval(timerInterval);
+
+    currentNumber = 1;
+    startTime = null;
+    gameStarted = false;
+
+    timerDisplay.textContent = "0.000 秒";
+
+    const numbers = [];
+
+    for(let i=1;i<=25;i++){
+        numbers.push(i);
+    }
+
+    shuffle(numbers);
+
+    numbers.forEach(num=>{
+
+        const btn = document.createElement("button");
+
+        btn.className = "cell";
+        btn.textContent = num;
+
+        btn.addEventListener("click",()=>{
+
+            // 點錯
+            if(num !== currentNumber){
+
+                btn.classList.add("wrong");
+                game.classList.add("gameWrong");
+
+                setTimeout(()=>{
+                    btn.classList.remove("wrong");
+                },300);
+
+                setTimeout(()=>{
+                    game.classList.remove("gameWrong");
+                },300);
+
+                return;
+            }
+
+            // 點到1開始計時
+            if(num === 1 && !gameStarted){
+
+                gameStarted = true;
+                startTime = Date.now();
+
+                timerInterval = setInterval(()=>{
+
+                    const elapsed =
+                    ((Date.now()-startTime)/1000).toFixed(3);
+
+                    timerDisplay.textContent =
+                    `${elapsed} 秒`;
+
+                },10);
+            }
+
+            btn.classList.add("correct");
+            btn.disabled = true;
+
+            // 完成
+            if(currentNumber === 25){
+
+                clearInterval(timerInterval);
+
+                const finalTime =
+                ((Date.now()-startTime)/1000).toFixed(3);
+
+                timerDisplay.textContent =
+                `完成！成績：${finalTime} 秒 🎉`;
+
+                const best =
+                localStorage.getItem("bestTime25");
+
+                if(
+                    !best ||
+                    parseFloat(finalTime) <
+                    parseFloat(best)
+                ){
+
+                    localStorage.setItem(
+                        "bestTime25",
+                        finalTime
+                    );
+
+                    bestTimeDisplay.textContent =
+                    `最佳紀錄：${finalTime} 秒 🏆`;
+                }
+
+                return;
+            }
+
+            currentNumber++;
+
         });
-    }
 
-    function startRound(roundIndex) {
-        currentRound = roundIndex;
-        isSubmitted = false;
-        
-        if(currentRound === faces.length - 1) {
-            document.getElementById('nextBtn').innerText = "查看崴孟真愛大結局 ➔";
-        } else {
-            document.getElementById('nextBtn').innerText = "尋找下一個孟孟 ➔";
-        }
-        
-        const face = faces[currentRound];
-        document.getElementById('quizLabel').innerText = `${face.name}`;
-        
-        // 渲染左側放大鏡
-        const qCanvas = document.getElementById('quizCanvas');
-        const qCtx = qCanvas.getContext('2d');
-        qCtx.clearRect(0, 0, 320, 320);
-        
-        // 模擬放大鏡鏡像：將目標物體放大4倍呈現在中央
-        qCtx.save();
-        qCtx.translate(160, 160);
-        qCtx.scale(4, 4);
-        qCtx.translate(-face.x, -face.y);
-        
-        // 在放大鏡裡重繪場景
-        [...faces, ...decoCircles].forEach(c => {
-            qCtx.fillStyle = c.color;
-            qCtx.beginPath();
-            qCtx.arc(c.x, c.y, 25, 0, Math.PI * 2);
-            qCtx.fill();
-            qCtx.fillStyle = "#fff";
-            qCtx.beginPath();
-            qCtx.arc(c.x, c.y, 10, 0, Math.PI * 2);
-            qCtx.fill();
-        });
-        qCtx.restore();
+        game.appendChild(btn);
 
-        // 增加十字瞄準線裝飾
-        qCtx.strokeStyle = "rgba(255, 0, 127, 0.3)";
-        qCtx.lineWidth = 2;
-        qCtx.beginPath(); qCtx.moveTo(160, 0); qCtx.lineTo(160, 320); qCtx.stroke();
-        qCtx.beginPath(); qCtx.moveTo(0, 160); qCtx.lineTo(320, 160); qCtx.stroke();
-        
-        // 重置點擊狀態
-        document.getElementById('playerPin').style.display = 'none';
-        document.getElementById('answerPin').style.display = 'none';
-        document.getElementById('scoreResult').innerText = "本關感應值：--";
-        document.getElementById('distanceResult').innerText = "點擊右邊地圖，鎖定孟孟的位置！";
-        guessedX = null; guessedY = null;
-        
-        const canvas = document.getElementById('lineCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    });
 
-    function placePin(event) {
-        if (isSubmitted) return;
-        const rect = document.getElementById('mapWrapper').getBoundingClientRect();
-        guessedX = event.clientX - rect.left;
-        guessedY = event.clientY - rect.top;
-        
-        const pin = document.getElementById('playerPin');
-        pin.style.left = guessedX + 'px';
-        pin.style.top = guessedY + 'px';
-        pin.style.display = 'block';
-        document.getElementById('distanceResult').innerText = "崴崴直覺在這裡！請點擊「提交答案」！";
-    }
+    loadBestTime();
+}
 
-    function submitAnswer() {
-        if (guessedX === null || isSubmitted) return;
-        isSubmitted = true;
-        const face = faces[currentRound];
-        
-        const ansPin = document.getElementById('answerPin');
-        ansPin.style.left = face.x + 'px';
-        ansPin.style.top = face.y + 'px';
-        ansPin.style.display = 'block';
+restartBtn.addEventListener(
+    "click",
+    startGame
+);
 
-        const dx = guessedX - face.x;
-        const dy = guessedY - face.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+loadBestTime();
+startGame();
 
-        let score = Math.round(5000 - (distance * 28));
-        if (score < 0) score = 0;
-        
-        totalScore += score;
-
-        document.getElementById('scoreResult').innerText = `本關感應值：${score} / 5000`;
-        
-        if(score > 4200) {
-            document.getElementById('distanceResult').innerText = `太閃了吧！誤差僅 ${Math.round(distance)} 像素，這絕對是命定真愛！`;
-        } else {
-            document.getElementById('distanceResult').innerText = `天啊誤差了 ${Math.round(distance)} 像素！崴崴你是不是認錯孟孟了？`;
-        }
-        
-        // 畫連線虛線
-        const canvas = document.getElementById('lineCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.beginPath();
-        ctx.strokeStyle = '#ff3333';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([5, 5]);
-        ctx.moveTo(guessedX, guessedY);
-        ctx.lineTo(face.x, face.y);
-        ctx.stroke();
-    }
-
-    function nextRound() {
-        if (!isSubmitted) {
-            alert("請先提交答案，測試你們的感應值！");
-            return;
-        }
-        
-        let next = currentRound + 1;
-        if (next >= faces.length) {
-            showEnding();
-        } else {
-            startRound(next);
-        }
-    }
-
-    function showEnding() {
-        document.getElementById('totalScoreText').innerText = `最終幸福指數：${totalScore} / 15000`;
-        
-        let comment = "";
-        if (totalScore >= 13500) {
-            comment = "恭喜達成【真愛無敵】大結局！崴崴在所有斑斕的偽裝魔性球中精確鎖定了孟孟！這波心靈感應直接把網頁給閃炸了，期末不拿 A+ 說不過去！";
-        } else if (totalScore >= 8000) {
-            comment = "達成【差點認錯】大結局！雖然勉強找到了，但崴崴點得歪七扭八，顯然好幾次差點把干擾球認成孟孟，回家準備跪算盤吧！";
-        } else {
-            comment = "達成【最遙遠的距離】大結局！幸福指數慘不忍睹，崴崴你完全分不出哪一個才是孟孟！建議立刻重啟網頁，重新修煉你們的心靈感應！";
-        }
-        
-        document.getElementById('endingComment').innerText = comment;
-        document.getElementById('endingScreen').classList.add('show');
-    }
-
-    function restartGame() {
-        totalScore = 0;
-        document.getElementById('endingScreen').classList.remove('show');
-        startRound(0);
-    }
-
-    window.onload = function() {
-        drawMainScene();
-        startRound(0);
-    };
 </script>
+
 </body>
 </html>
